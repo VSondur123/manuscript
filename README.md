@@ -27,12 +27,12 @@ Your materials stay on your machine, but Claude Code sends the files it reads to
 Project-level (this repository only):
 ```bash
 mkdir -p <your-repo>/.claude/skills
-git clone <repo-url> <your-repo>/.claude/skills/manuscript          # or: ln -s / cp -R
+git clone https://github.com/VSondur123/manuscript.git <your-repo>/.claude/skills/manuscript          # or: ln -s / cp -R
 ```
 User-level (all projects):
 ```bash
 mkdir -p ~/.claude/skills
-git clone <repo-url> ~/.claude/skills/manuscript                    # or: ln -s / cp -R
+git clone https://github.com/VSondur123/manuscript.git ~/.claude/skills/manuscript                    # or: ln -s / cp -R
 # update later: git -C ~/.claude/skills/manuscript pull
 ```
 Edits to installed skills are picked up live; if the top-level `skills` directory is new, run `/reload-skills`. Restart not required.
