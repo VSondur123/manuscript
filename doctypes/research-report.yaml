@@ -1,0 +1,17 @@
+# Document type definition. Add new types by adding a file here (see references/doctypes.md).
+name: research-report
+description: Research or university course report with a standard IMRaD-like structure
+require_abstract: true
+top_level_division: section        # pandoc --top-level-division
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric            # numeric | author-year (natbib)
+required_sections:
+  - Introduction
+  - Methodology|Methods|Method
+  - Results|Findings|Results and Discussion
+  - Conclusion|Conclusions
+  - References|Bibliography
+recommended_sections:
+  - Background|Literature Review|Related Work
+  - Discussion
+  - Limitations

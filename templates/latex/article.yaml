@@ -1,0 +1,19 @@
+# pandoc defaults file for article-class documents (used via: pandoc --defaults)
+# Institutional templates: set 'template:' in project-config.yaml to your own pandoc template instead.
+standalone: true
+number-sections: true
+toc: false
+top-level-division: section
+variables:
+  documentclass: article
+  classoption:
+    - 11pt
+    - a4paper
+  geometry: margin=2.5cm
+  linestretch: 1.15
+  colorlinks: true
+  linkcolor: black
+  citecolor: black
+  urlcolor: blue
+  biblio-style: plainnat
+  natbiboptions: numbers,sort&compress

@@ -1,0 +1,16 @@
+name: technical-report
+description: Technical or system design report
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Design|Architecture|System Design|Implementation
+  - Evaluation|Results|Testing
+  - Conclusion|Conclusions
+  - References|Bibliography
+recommended_sections:
+  - Requirements
+  - Limitations
+  - Future Work

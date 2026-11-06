@@ -1,0 +1,19 @@
+name: ieee-report
+description: IEEE conference-format report (IEEEtran, two columns, numeric IEEE citations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/ieee.yaml
+pandoc_template: templates/latex/ieee.latex
+lua_filters: [templates/latex/ieee-tables.lua]
+cite_command: cite
+fig_abbrev: true
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

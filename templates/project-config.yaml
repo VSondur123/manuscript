@@ -1,0 +1,17 @@
+# ManuScript project configuration (restricted YAML subset: maps, lists, scalars)
+project_id: my-document
+document_type: research-report      # must match a file in doctypes/
+title: Working Title
+language: en
+citation_style: numeric             # numeric | author-year
+limits:
+  max_words: null                   # e.g. 4000
+  min_words: null
+  max_pages: null                   # checked only after PDF build
+requirements_source: null           # path to assignment guidelines, if any
+template: null                      # path to an institutional LaTeX template, if any
+# Assignment-specific overrides of the document type defaults (optional; uncomment to use).
+# Alternatives within one entry are separated by | . These REPLACE the doctype lists.
+# required_sections: [Introduction, Method, Results, Conclusion]
+# recommended_sections: []
+# require_abstract: false

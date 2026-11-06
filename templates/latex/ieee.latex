@@ -1,0 +1,51 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{url}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+\providecommand{\passthrough}[1]{#1}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\usepackage[hidelinks]{hyperref}
+\begin{document}
+
+\title{$title$}
+
+\author{$for(author)$$if(author.name)$\IEEEauthorblockN{$author.name$}
+\IEEEauthorblockA{$if(author.affiliation)$\textit{$author.affiliation$}$endif$$if(author.city)$ \\ $author.city$$endif$$if(author.email)$ \\ $author.email$$endif$}$else$\IEEEauthorblockN{$author$}$endif$$sep$
+\and
+$endfor$}
+
+\maketitle
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+
+$if(keywords)$
+\begin{IEEEkeywords}
+$for(keywords)$$keywords$$sep$, $endfor$
+\end{IEEEkeywords}
+$endif$
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{IEEEtran}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

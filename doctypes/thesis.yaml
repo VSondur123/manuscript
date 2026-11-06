@@ -1,0 +1,17 @@
+name: thesis
+description: Thesis or dissertation with chapters
+require_abstract: true
+top_level_division: chapter
+latex_defaults: templates/latex/book.yaml
+citation_style: author-year
+required_sections:
+  - Introduction
+  - Literature Review|Background|Related Work
+  - Methodology|Methods
+  - Results|Findings
+  - Discussion
+  - Conclusion|Conclusions
+  - References|Bibliography
+recommended_sections:
+  - Limitations
+  - Future Work
