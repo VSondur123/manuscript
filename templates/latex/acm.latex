@@ -1,0 +1,62 @@
+$-- ManuScript pandoc template: ACM acmart (default format sigconf). Compiles with tectonic (acmart + ACM-Reference-Format.bst).
+$-- Front-matter keys (pandoc YAML):
+$--   title, subtitle (opt), abstract, keywords: [a, b]
+$--   author: list of {name, affiliation, city, country, email}   (one \author block each; a plain string also works)
+$--   acm-format      acmart format (default sigconf; also acmsmall, acmlarge, acmtog, acmcp, manuscript)
+$--   acm-review      true -> review mode with line numbers
+$--   acm-conference  short conference name; setting it switches OFF "nonacm" mode and emits the rights block
+$--   acm-conference-name, acm-date, acm-venue, acm-year, acm-doi, acm-isbn, acm-copyright (default acmlicensed)
+$-- acmart rejects an affiliation without a country: give `country` for every author that has an `affiliation`
+$-- (an empty country is accepted but prints nothing useful). Authors without affiliation are fine.
+$-- Without acm-conference the paper is typeset in `nonacm` mode (no ACM rights / reference-format block), the safe default.
+\documentclass[$if(acm-format)$$acm-format$$else$sigconf$endif$$if(acm-conference)$$else$,nonacm$endif$$if(acm-review)$,review$endif$]{acmart}
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+$if(acm-conference)$
+\setcopyright{$if(acm-copyright)$$acm-copyright$$else$acmlicensed$endif$}
+\copyrightyear{$if(acm-year)$$acm-year$$else$2026$endif$}
+\acmYear{$if(acm-year)$$acm-year$$else$2026$endif$}
+\acmConference[$acm-conference$]{$if(acm-conference-name)$$acm-conference-name$$else$$acm-conference$$endif$}{$acm-date$}{$acm-venue$}
+$if(acm-doi)$\acmDOI{$acm-doi$}$endif$
+$if(acm-isbn)$\acmISBN{$acm-isbn$}$endif$
+$endif$
+$for(header-includes)$
+$header-includes$
+$endfor$
+\begin{document}
+
+\title{$title$}
+$if(subtitle)$\subtitle{$subtitle$}$endif$
+
+$for(author)$
+$if(author.name)$
+\author{$author.name$}
+$if(author.affiliation)$\affiliation{\institution{$author.affiliation$}$if(author.city)$\city{$author.city$}$endif$\country{$author.country$}}$endif$
+$if(author.email)$\email{$author.email$}$endif$
+$else$
+\author{$author$}
+$endif$
+
+$endfor$
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+
+$if(keywords)$\keywords{$for(keywords)$$keywords$$sep$, $endfor$}$endif$
+
+\maketitle
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

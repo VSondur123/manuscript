@@ -1,0 +1,21 @@
+name: policy-brief
+description: Short policy brief for decision makers (problem, evidence, options, recommendations)
+require_abstract: true             # use the abstract for the key messages / executive summary
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: apa7
+layout:
+  font: helvetica-sans
+  font_size: 11
+  margins: 2cm
+  header: running-title
+  heading_numbering: off
+required_sections:
+  - Introduction|Background|Context|Problem Statement|The Problem
+  - Recommendations|Policy Recommendations|Policy Options|Recommended Actions
+recommended_sections:
+  - Key Findings|Findings|Evidence|Analysis
+  - Policy Options|Options|Alternatives
+  - Implementation|Implementation Considerations
+  - Conclusion|Conclusions
+  - References|Bibliography|Sources

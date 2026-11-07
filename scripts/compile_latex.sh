@@ -15,8 +15,11 @@ fi
 have "$engine" 2>/dev/null || { echo "ERROR: no LaTeX engine available (install tectonic or a TeX distribution)" >&2; exit 2; }
 
 cd "$dir" || exit 2
+rm -f "$dir/$name.pdf"   # build output only: a leftover PDF must never count as success
+engine_rc=0
 {
   echo "# engine: $engine   started: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  (
   case "$engine" in
     latexmk)  latexmk -pdf -interaction=nonstopmode -halt-on-error "$name.tex" ;;
     tectonic) tectonic -X compile --keep-logs "$name.tex" 2>&1 || tectonic "$name.tex" 2>&1 ;;
@@ -26,10 +29,14 @@ cd "$dir" || exit 2
               "$engine" -interaction=nonstopmode -halt-on-error "$name.tex" &&
               "$engine" -interaction=nonstopmode -halt-on-error "$name.tex" ;;
   esac
-  echo "# exit: $?"
+  ) ; engine_rc=$?
+  echo "# exit: $engine_rc"
+  echo "$engine_rc" >"$dir/.engine_rc.$$"
 } >"$log" 2>&1
+engine_rc="$(cat "$dir/.engine_rc.$$" 2>/dev/null || echo 1)"; rm -f "$dir/.engine_rc.$$"
 rc=0
-[ -f "$dir/$name.pdf" ] && [ "$dir/$name.pdf" -nt "$tex" ] || rc=1
+# success needs BOTH a zero engine exit status and a non-empty fresh PDF
+{ [ "$engine_rc" = 0 ] && [ -s "$dir/$name.pdf" ]; } || rc=1
 
 echo "engine: $engine   log: $log"
 if [ $rc -eq 0 ]; then echo "PDF: $dir/$name.pdf"; else echo "COMPILE FAILED"; fi

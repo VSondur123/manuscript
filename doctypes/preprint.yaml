@@ -1,0 +1,18 @@
+name: preprint
+description: Clean single-column arXiv-style preprint (article class, numeric natbib citations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/preprint.yaml
+pandoc_template: templates/latex/preprint.latex
+lua_filters: [templates/latex/venue-authors.lua, templates/latex/ieee-tables.lua]
+fig_abbrev: false
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

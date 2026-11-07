@@ -19,3 +19,10 @@ abstract: |
 - Equations: `$inline$`, `$$display$$`. Code: fenced blocks (ignored by validators).
 - Missing evidence: `[[EVIDENCE NEEDED: …]]`; open items: `TODO`. Both are **errors** at validation, so nothing unresolved passes approval.
 - Appendices: `# Appendix A: Title` headings after the conclusion.
+
+## Front matter and special markup
+- Venue types (`acm-paper`, `llncs-paper`, `elsevier-paper`, `revtex-paper`, `preprint`, `ieee-report`): `author:` as a list of `{name, affiliation, email}` maps (ACM also needs `country` per affiliated author). Generic article types: plain strings, or maps (flattened to `Name (Affiliation)`). Keys per venue are documented at the top of `templates/latex/<venue>.latex`.
+- `thesis-formal`: `abbreviations:` and `symbols:` as `[{term, meaning}]`; mark appendices `# Title {.appendix}` (must be last). See `latex-production.md`.
+- `header: running-title` / `title-author` layouts need `title:` and `author:` in the front matter.
+- Raw LaTeX commands in the text are not passed through (a `raw-latex-ignored` warning is shown); use Markdown and math in `$...$` / `$$...$$` (a bare `\begin{equation}` becomes plain text).
+- With `citation_style: mla9`, write `@key [p. 5]` or `[@key, p. 5]`; a bare narrative `@key` prints empty parentheses.

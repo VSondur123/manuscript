@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.1 — 2026-11-07
+- `/manuscript humanize [section]`: style revision pass backed by `references/humanize.md` and report-only `scripts/style_scan.py` (sentence/paragraph-length spread, stock vocabulary, template phrases, em-dash and bold density). Not a detector bypass; no score is promised.
+- Citation styles via pandoc citeproc and vendored CSL (`templates/csl/`, CC BY-SA 3.0): `apa7`, `harvard`, `mla9`, `chicago-author-date`, `chicago-notes`, `vancouver` (NLM). `numeric`, `author-year`, `ieee` stay on BibTeX. A `citation_style` in project-config now takes effect (it was ignored before); the config template no longer hard-codes `numeric`.
+- Whitelisted `layout:` options in project-config (paper, font size, spacing, margins, columns, font, header, page numbers, heading numbering, caption position, table style, colour) merged by the new `scripts/layout.py`; `ms_state.py layouts` and `check-config`. Default output is byte-identical to 0.1.0-beta (golden tests).
+- 10 new document types (literature-review, project-report, experiment-report, research-proposal, dissertation-proposal, system-design-document, case-study, white-paper, policy-brief, conference-paper) and 5 venue templates (acm-paper, llncs-paper, elsevier-paper, revtex-paper, preprint). Springer Nature and NeurIPS/ICML/ICLR styles are not supported (not in tectonic's bundle).
+- `thesis-formal` doctype: cover page, declaration, copyright, dedication, acknowledgements, lists of figures/tables/abbreviations/symbols, lettered appendices, optional roman front-matter numbering, hash-locked logo (`ms_state.py lock-logo`).
+- Optional Word output: `md_to_docx.py`, `validate_docx.py`, `ms_state.py publish --docx|--docx-only`; reports what Word cannot reproduce. Checked structurally only (no Word available).
+- Fixes: `compile_latex.sh` no longer mistakes a same-second or leftover PDF for success.
+- Fixes from an independent check: raw LaTeX in Markdown no longer reaches LaTeX/Word (D-017); `columns: 2` + `table_style: plain` compiles; the formal-thesis cover fits one page; map-style authors work in generic types; doctype heading alternatives widened (e.g. "Materials and Methods"); the sibling PNG of a PDF figure is hash-locked (projects approved earlier with such figures must re-approve before Word export); MLA narrative cites no longer print `Lee ()`; thesis logos must live inside the project; `compile_latex.sh` requires engine exit 0 and a PDF; `style_scan` wording no longer tells users to replace legitimate terms; Word export notes when its reference style differs from the PDF.
+
 ## 0.1.0-beta — 2026-11-06
 - First beta. README gains Requirements (Claude Code, Python 3.9+, pandoc/tectonic/poppler; macOS/Linux notes), a citation-verification warning, a privacy note and a feedback section.
 - Fixed stale `draft.md`/`output/` wording in the draft-preview instructions; skill description now lists only the four shipped document types.

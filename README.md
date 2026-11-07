@@ -48,8 +48,9 @@ Edits to installed skills are picked up live; if the top-level `skills` director
 ## Use
 Open Claude Code in the folder containing your materials:
 - `/manuscript` — start or resume
-- `/manuscript continue` · `status` · `validate` · `review` (arguments are passed to the skill; natural language also works)
+- `/manuscript continue` · `status` · `validate` · `review` · `humanize [section]` · `options` · `docx` (arguments are passed to the skill; natural language also works)
 Typical session: discovery → plan (edit, then `APPROVE PLAN`) → evidence → draft (edit freely or ask for changes) → validation report → `APPROVE MARKDOWN` → LaTeX → PDF → QA → `manuscript/<id>/<id>.tex` + `<id>.pdf` (via `ms_state.py publish`).
+`humanize` runs a style-only revision pass (specific, varied, less template-like prose) using a report-only `style_scan.py`; it never changes claims, numbers or citations and cannot guarantee any AI-detector result. See `references/humanize.md`.
 Ask for a **draft preview** at any time for a watermarked PDF of the unapproved draft (not a deliverable).
 Resume in a new session by running `/manuscript` again in the same directory.
 
@@ -59,7 +60,24 @@ The report ends with a readable `# References` list (generated from `.ms/referen
 Block/workflow diagrams and bar/line charts are built from JSON specs (`.ms/figures-src/`) into vector PDFs by `build_figures.py` (TikZ/pgfplots, no extra dependencies); CSV subsets become captioned tables via `csv_table.py`. Figure files, specs and input CSVs are hash-locked by the Markdown approval. See `references/figures.md`.
 
 ## Document types
-Shipped: `research-report`, `technical-report`, `thesis`, `ieee-report` (IEEEtran conference layout, two columns, `\cite` numeric IEEE style). Add one by creating `doctypes/<name>.yaml` (see `references/doctypes.md`). Not yet defined: literature review, experiment report, system design document, research proposal.
+List them with `ms_state.py doctypes`. Add one by creating `doctypes/<name>.yaml` (see `references/doctypes.md`).
+
+| Type | For |
+|---|---|
+| `research-report`, `technical-report`, `thesis` | original three |
+| `thesis-formal` | thesis with cover page, declaration, copyright, dedication, acknowledgements, lists of figures/tables/abbreviations/symbols, lettered appendices, roman front-matter numbering (opt-in; default `thesis` is unchanged) |
+| `literature-review`, `project-report`, `experiment-report`, `research-proposal`, `dissertation-proposal`, `system-design-document`, `case-study`, `white-paper`, `policy-brief`, `conference-paper` | genre-specific section sets and sensible layout defaults |
+| `ieee-report`, `acm-paper`, `llncs-paper`, `elsevier-paper`, `revtex-paper`, `preprint` | venue/publisher templates (IEEEtran, acmart sigconf, Springer LNCS, elsarticle, REVTeX 4.2, arXiv-style) |
+
+Not supported (they do not compile under tectonic or are per-year files): Springer Nature `sn-jnl`, NeurIPS/ICML/ICLR styles. Supply your own template with `template:` in the config if you have one.
+
+## Citation styles and layout options
+Set in `.ms/project-config.yaml`; `ms_state.py layouts` lists every allowed value and `ms_state.py check-config` validates them. Values are whitelisted; nothing free-form reaches LaTeX.
+- `citation_style`: `numeric`, `author-year`, `ieee` (BibTeX/natbib); `apa7`, `harvard`, `mla9`, `chicago-author-date`, `chicago-notes`, `vancouver` (pandoc citeproc with vendored CSL files, `templates/csl/`, CC BY-SA 3.0; `vancouver` is the NLM "Citing Medicine" style). CSL styles are not available with `ieee-report` or custom templates. With `mla9`, write narrative cites with a locator (`@key [p. 5]`).
+- `layout:` paper (a4, letter), font_size (10-12), spacing (single, onehalf, double), margins (e.g. `2.5cm`), columns (1, 2), font (cm, times, palatino, libertinus, helvetica-sans), header, page_numbers, heading_numbering, caption_position, table_style, colour. Unset keys keep the document type's defaults; config beats doctype.
+
+## Word (.docx) output
+After `APPROVE MARKDOWN`: `/manuscript docx` (or `scripts/md_to_docx.py`). Optional, read-only on the approved snapshot, no extra stage. `ms_state.py publish --docx` copies it into the project folder. Word gets paper size, margins, font, spacing, heading numbering, page numbers, header, your citation style, numbered captions, cross-references and native equations. It does not get two columns, booktabs rules, LaTeX-only fonts, venue templates, the formal-thesis cover page, roman numbering or lettered appendices; every export prints what was ignored. Output was validated structurally (`validate_docx.py`) and never opened in Word. Default `numeric`/`author-year` map to Vancouver/Harvard CSL in Word, so the reference list can differ from the PDF.
 
 ## Dependencies
 Required: Python ≥ 3.9, git (optional). For LaTeX/PDF: `pandoc`, a LaTeX engine (`tectonic` recommended; `latexmk`/`xelatex`/`pdflatex` auto-detected), poppler (`pdftotext`, `pdfinfo`, `pdftoppm`, `pdffonts`). macOS: `brew install tectonic pandoc poppler`. Without them, discovery, planning, drafting and Markdown validation still work; PDF stages report the missing tool.
@@ -72,12 +90,16 @@ Pipeline tests are skipped when pandoc/tectonic/poppler are missing. Claude-Code
 
 ## Limitations (see also CHANGELOG)
 - Approval phrases are enforced by scripts, but nothing technically stops a model from passing the phrase without the user typing it; the SKILL.md rule is the safeguard. A hook-based enforcement is a possible future addition.
-- Bibliography: BibTeX/natbib only (biblatex/biber not supported by the default templates). Citation *existence* is not verified (no DOI lookup).
+- Bibliography: BibTeX/natbib or pandoc citeproc (CSL); biblatex/biber is not supported. Citation *existence* is not verified (no DOI lookup).
+- Raw LaTeX typed into the Markdown is not passed through to the PDF (see CHANGELOG). Authors given as name/affiliation maps are flattened to `Name (Affiliation)` in generic article types; use a venue type for proper author blocks. Math must use `$...$` or `$$...$$`.
+- Word export is checked structurally only and omits venue/thesis typesetting (see above).
 - Markdown word counts are approximate; page limits are measured only from the PDF.
 - PDF inspection is heuristic (margins, edge clipping, blank pages, unresolved refs, fonts); caption/figure placement need visual review of the rendered PNGs.
 - DOCX extraction is text-only; scanned PDFs are not OCR'd; XLSX is listed but not read.
-- `thesis` template and institutional template packs are basic/untested on real university templates.
+- `thesis`/`thesis-formal` templates and institutional template packs are untested on real university templates. `thesis-formal`: appendices must be last, headings are English, the BibTeX bibliography is not in the table of contents.
+- CSL files in `templates/csl/` are CC BY-SA 3.0 (see `templates/csl/NOTICE.md`); the rest of the project is MIT.
 - Markdown subset: figures/tables labels via pandoc attributes; no pandoc-crossref.
+- `humanize` is a style revision pass, not an AI-detector bypass. `style_scan.py` uses simple heuristics (sentence/paragraph-length spread, stock vocabulary, template phrases) and is not a detector score. Real detectors are unreliable and differ from one another, and no pass guarantees a result. Submitting AI-assisted work may still breach your institution's rules.
 
 ## Beta feedback
 This is a beta. When reporting a problem, please include: the stage (`/manuscript status`), the command or step that failed, its error output, and the relevant file in `<project>/.ms/logs/`. Do not attach confidential source documents. Open an issue on this repository's GitHub Issues page.

@@ -5,7 +5,7 @@ State lives in `manuscript/<id>/.ms/state.json`; the file system is the source o
 ## Stage definitions and exit criteria
 1. **INITIALISED** — workspace created by `ms_state.py init`. Copy `templates/project-config.yaml` to `project-config.yaml` and fill it with the user. Exit: config exists.
 2. **DISCOVERY_IN_PROGRESS → DISCOVERY_COMPLETE** — see `project-discovery.md`. Exit: user has seen the discovery summary and confirmed which materials are relevant.
-3. **PLAN_PENDING_APPROVAL** — write `plan.md`: document type, working title, purpose, audience, objective, research questions, scope/exclusions, constraints (from assignment guidelines first), citation style, limits, required figures/tables, then `## Approved structure`: a bullet list containing ONLY section titles, one bullet per heading, nested with 2 spaces = heading hierarchy (the validator treats every bullet as a heading; include Abstract only if it is a body heading). Put each section's purpose, expected evidence and page allocation in a separate `## Section notes` table or list. Ask the user to modify or reply `APPROVE PLAN`.
+3. **PLAN_PENDING_APPROVAL** — first agree document type, citation style and layout with the user (`ms_state.py doctypes`, `layouts`, then `check-config`); write `plan.md`: document type, working title, purpose, audience, objective, research questions, scope/exclusions, constraints (from assignment guidelines first), citation style, limits, required figures/tables, then `## Approved structure`: a bullet list containing ONLY section titles, one bullet per heading, nested with 2 spaces = heading hierarchy (the validator treats every bullet as a heading; include Abstract only if it is a body heading). Put each section's purpose, expected evidence and page allocation in a separate `## Section notes` table or list. Ask the user to modify or reply `APPROVE PLAN`.
 4. **PLAN_APPROVED** (entered only by `approve-plan`) — editing `plan.md` afterwards makes the approval stale; re-approve.
 5. **EVIDENCE_ANALYSIS** — build/inspect `.ms/evidence-inventory.md` (`evidence-management.md`). Exit: every planned section has identified evidence or an explicit gap list the user has seen.
 6. **MARKDOWN_DRAFTING** — write `<id>-report.md`. `ms_state.py backup <id>-report.md` before every later edit; `sync` after.
@@ -16,7 +16,7 @@ State lives in `manuscript/<id>/.ms/state.json`; the file system is the source o
 11. **LATEX_VALIDATION** — `validate_latex.py`.
 12. **PDF_GENERATION** — `compile_latex.sh .ms/latex/<id>.tex`; show actionable errors from the log.
 13. **PDF_QA** — `inspect_pdf.py`, view rendered pages, fix layout (markup/template only), recompile. Unfixable issues are reported.
-14. **COMPLETED** — run `ms_state.py publish` (copies `<id>.tex` and `<id>.pdf` to the visible folder), write `.ms/validation/final-report.md` (what was approved, files, checks run, outstanding issues).
+14. **COMPLETED** — run `ms_state.py publish` (copies `<id>.tex` and `<id>.pdf` to the visible folder; add `--docx` only if the user asked for Word, see SKILL.md "Word output"), write `.ms/validation/final-report.md` (what was approved, files, checks run, outstanding issues).
 
 ## Recovery
 - Missing/corrupt `.ms/state.json`: explain; reconstruct from files only with user consent (init a new project and `sync`), never delete files.

@@ -1,0 +1,48 @@
+$-- ManuScript pandoc template: clean arXiv-style single-column preprint (article class, natbib numeric, unsrtnat.bst).
+$-- Front-matter keys (pandoc YAML):
+$--   title, abstract, keywords: [a, b], date (opt)
+$--   author: list of {name, affiliation, email}  -- affiliations de-duplicated and numbered; plain string also works
+$-- Needs the venue-authors.lua filter (declared by doctypes/preprint.yaml).
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[numbers,sort&compress]{natbib}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+\setlength{\parskip}{0.4em}\setlength{\parindent}{0pt}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\usepackage[hidelinks]{hyperref}
+\title{$title$}
+\author{$for(author)$$if(author.name)$$author.name$$else$$author$$endif$$if(author.affids)$\textsuperscript{$author.affids$}$endif$$sep$, $endfor$$if(affiliations)$\\[0.6em]
+{\small\begin{tabular}{c}$for(affiliations)$\textsuperscript{$affiliations.id$}$affiliations.text$$if(affiliations.emails)$ ($affiliations.emails$)$endif$$sep$ \\ $endfor$\end{tabular}}$endif$}
+\date{$date$}
+\begin{document}
+\maketitle
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$if(keywords)$
+\noindent\textbf{Keywords:} $for(keywords)$$keywords$$sep$, $endfor$
+$endif$
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{unsrtnat}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

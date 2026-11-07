@@ -1,0 +1,47 @@
+$-- ManuScript pandoc template: Springer LNCS (llncs class, splncs04 numeric BibTeX style, \cite).
+$-- Front-matter keys (pandoc YAML):
+$--   title, titlerunning (opt, short title), abstract, keywords: [a, b]
+$--   author: list of {name, affiliation, email}  -- affiliations are de-duplicated and numbered automatically
+$--     (\inst / \institute, emails appended to the institute); a plain string also works
+$--   authorrunning (opt; default derived from the author names)
+$--   llncs-options (opt, class options, default runningheads)
+$-- Needs the venue-authors.lua filter (declared by doctypes/llncs-paper.yaml).
+\documentclass[$if(llncs-options)$$llncs-options$$else$runningheads$endif$]{llncs}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\usepackage{url}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\usepackage[hidelinks]{hyperref}
+\begin{document}
+
+\title{$title$}
+$if(titlerunning)$\titlerunning{$titlerunning$}$endif$
+\author{$for(author)$$if(author.name)$$author.name$$else$$author$$endif$$if(author.affids)$\inst{$author.affids$}$endif$$sep$ \and $endfor$}
+\authorrunning{$authorrunning$}
+\institute{$for(affiliations)$$affiliations.text$$if(affiliations.emails)$ \email{$affiliations.emails$}$endif$$sep$ \and $endfor$}
+
+\maketitle
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+$if(keywords)$\keywords{$for(keywords)$$keywords$$sep$ \and $endfor$}$endif$
+\end{abstract}
+$endif$
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{splncs04}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

@@ -1,7 +1,7 @@
 ---
 name: manuscript
-description: Approval-driven academic document production. Turns research materials (Markdown, PDFs, notes, assignment guidelines, data) into a planned, evidence-traced Markdown draft, then approved LaTeX and a quality-checked PDF. Use to start, resume, review, validate or check status of a document project (research report, technical report, thesis, IEEE-format report).
-argument-hint: "[continue | review | validate | status | <project-id>]"
+description: Approval-driven academic document production. Turns research materials (Markdown, PDFs, notes, assignment guidelines, data) into a planned, evidence-traced Markdown draft, then approved LaTeX and a quality-checked PDF. Use to start, resume, review, validate, humanize the prose of, export to Word, or check status of a document project (research report, technical report, thesis, literature review, project/experiment report, proposal, white paper, policy brief, conference/venue paper, and more: run `ms_state.py doctypes` for the full list).
+argument-hint: "[continue | review | validate | status | humanize [section] | options | docx | <project-id>]"
 allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*) Bash(${CLAUDE_SKILL_DIR}/scripts/*) Bash(python3 .claude/skills/manuscript/scripts/*) Bash(.claude/skills/manuscript/scripts/*) Bash(python3 ~/.claude/skills/manuscript/scripts/*) Bash(~/.claude/skills/manuscript/scripts/*)
 ---
 
@@ -29,10 +29,13 @@ Argument handling (interpret natural language equally):
 - `status` — print stage, completed stages, approvals, drift, last validation; no changes.
 - `validate` — run `validate_markdown.py` (and `validate_latex.py`/`inspect_pdf.py` if those artifacts exist); report errors, warnings, suggestions, confirmations. No approvals implied.
 - `review` — review the current draft against plan, evidence inventory and `references/academic-writing.md`; report findings, do not edit unless asked.
+- `humanize [section]` — style revision pass that makes prose specific, varied and less template-like; read `references/humanize.md` first. Run `style_scan.py --project <id>` (report-only) before and after; back up, edit `<id>-report.md` for style only, `sync`, `validate_markdown.py`. Never alters claims, numbers, citations or approved structure; never promises a detector score. Past `MARKDOWN_PENDING_APPROVAL`, warn that approval will be invalidated.
+- `options` — show what the user can choose: `ms_state.py doctypes`, `ms_state.py layouts` (layout options and citation styles). Explain briefly; change nothing.
+- `docx` — export the approved Markdown to Word (see "Word output"). Only after `APPROVE MARKDOWN`.
 - anything else matching a project id selects that project.
 
 ## Folder layout: three visible files only
-`manuscript/<id>/` shows the user exactly: `plan.md` → (after `APPROVE PLAN`) `<id>-report.md` → (after `APPROVE MARKDOWN`) `<id>.tex` + `<id>.pdf`. **Everything else lives in the hidden `.ms/` folder** (state, config, evidence inventory, bibliography, figures, figure specs, CSV data, validation reports, logs, backups, approved snapshots, LaTeX build dir). Never create extra files in the visible folder: no notes, summaries, validation reports or previews there. Put figure specs in `.ms/figures-src/`, data in `.ms/data/`, and reference images in the report as `.ms/figures/<name>.png`. Evidence analysis happens in `.ms/evidence-inventory.md` (summarise it in chat; do not add it to the visible folder). At COMPLETED run `ms_state.py publish` to copy the final `.tex`/`.pdf` out of `.ms/latex/`.
+`manuscript/<id>/` shows the user exactly: `plan.md` → (after `APPROVE PLAN`) `<id>-report.md` → (after `APPROVE MARKDOWN`) `<id>.tex` + `<id>.pdf`, plus `<id>.docx` only if the user asked for Word output. **Everything else lives in the hidden `.ms/` folder** (state, config, evidence inventory, bibliography, figures, figure specs, CSV data, validation reports, logs, backups, approved snapshots, LaTeX build dir). Never create extra files in the visible folder: no notes, summaries, validation reports or previews there. Put figure specs in `.ms/figures-src/`, data in `.ms/data/`, and reference images in the report as `.ms/figures/<name>.png`. Evidence analysis happens in `.ms/evidence-inventory.md` (summarise it in chat; do not add it to the visible folder). At COMPLETED run `ms_state.py publish` to copy the final `.tex`/`.pdf` out of `.ms/latex/`.
 
 ## Stages (state machine in `scripts/ms_state.py`)
 
@@ -48,6 +51,8 @@ Move with `ms_state.py stage <STAGE> --note "..."`. Stages cannot be skipped. Go
 | Draft | Write `<id>-report.md` per plan; back up before every edit | `markdown-conventions.md`, `academic-writing.md` |
 | Figures | Build diagrams/charts from specs (`build_figures.py`), CSV tables (`csv_table.py`); view the PNGs | `figures.md` |
 | References | `render_references.py` writes the readable reference list into the report's final `# References` section (from `.ms/references.bib`); re-run after any bibliography change and before validation | `markdown-conventions.md` |
+| Options (plan stage) | Ask the user for citation style, layout, and for formal theses the front matter; write them to `project-config.yaml`; `ms_state.py check-config <id>` | `latex-production.md`, `doctypes.md` |
+| Humanize (on request) | `style_scan.py`, then style-only edits | `humanize.md` |
 | Validate | `validate_markdown.py` | `quality-assurance.md` |
 | LaTeX | `md_to_latex.py` (approved snapshot only) → `validate_latex.py` → `compile_latex.sh` | `latex-production.md` |
 | PDF QA | `inspect_pdf.py --render-dir …` and LOOK at the PNGs | `quality-assurance.md` |
@@ -72,6 +77,12 @@ Propose figures/tables per section in the plan (purpose, type, data source). Bui
 
 ## Draft preview
 On request ("preview", "show me a PDF of the draft"): `md_to_latex.py --preview` then `compile_latex.sh .ms/latex/<id>-preview.tex`. Works on the unapproved `<id>-report.md`, marks every page "DRAFT PREVIEW -- NOT APPROVED", changes no state, stays in `.ms/latex/` (never published as a deliverable), and never replaces the approval gate.
+
+## Document options (ask at the plan stage)
+Offer the user the choices instead of assuming. `ms_state.py doctypes` lists document types (including venue templates `acm-paper`, `llncs-paper`, `elsevier-paper`, `revtex-paper`, `preprint`, `ieee-report`, and the opt-in `thesis-formal`). `ms_state.py layouts` lists the whitelisted `layout:` keys (paper, font size, spacing, margins, columns, font, header, page numbers, heading numbering, caption position, table style, colour) and `citation_style` values (`numeric`, `author-year`, `ieee`, `apa7`, `harvard`, `mla9`, `chicago-author-date`, `chicago-notes`, `vancouver`). Write chosen values to `project-config.yaml`, run `ms_state.py check-config <id>` and fix any error it lists. Never put free text into layout values; they are whitelisted. Assignment guidelines beat the user's defaults. Details in `references/latex-production.md` and `references/doctypes.md`.
+
+## Word output (optional)
+On request ("Word", "docx"), after `APPROVE MARKDOWN`: `md_to_docx.py --project <id>`, then `validate_docx.py <file> --project <id>`. It reads only the approved snapshot, adds no stage and does not replace the PDF. Copy it to the visible folder only if asked: `ms_state.py publish --docx` (with tex/pdf) or `--docx-only`. Print the script's IGNORED/NOTE lines to the user: Word does not reproduce two columns, booktabs, venue templates, the formal-thesis cover page, roman numbering or lettered appendices, and its reference list may differ from the PDF. You cannot open Word here: say the file was checked structurally only. After re-approval `verify` reports `docx_stale`; re-export.
 
 ## Requirements precedence
 Assignment guidelines > project-config.yaml > doctype defaults. If a doctype default conflicts with the guidelines (e.g. required section names), set `required_sections` in `project-config.yaml` rather than renaming approved sections; tell the user.

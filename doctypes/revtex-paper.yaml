@@ -1,0 +1,18 @@
+name: revtex-paper
+description: APS/AIP REVTeX 4.2 physics paper (two columns, apsrev4-2 citations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/revtex.yaml
+pandoc_template: templates/latex/revtex.latex
+lua_filters: [templates/latex/ieee-tables.lua]
+fig_abbrev: true
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

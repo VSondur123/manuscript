@@ -1,0 +1,18 @@
+name: experiment-report
+description: Laboratory or experiment report (aim, method, results, analysis, conclusion)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+required_sections:
+  - Introduction|Objective|Objectives|Aim|Purpose|Aims|Aims and Objectives|Introduction and Aims|Introduction and Background|Background
+  - Method|Methods|Methodology|Procedure|Experimental Procedure|Experimental Method|Materials and Methods|Methods and Materials|Experimental Methods|Experimental Setup|Experimental Design|Materials and Procedure
+  - Results|Observations|Data and Results|Results and Analysis|Results and Discussion|Findings|Data Analysis
+  - Discussion|Analysis|Discussion and Analysis|Results and Discussion|Discussion and Conclusion|Analysis and Discussion
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks
+  - References|Bibliography
+recommended_sections:
+  - Theory|Background|Theoretical Background
+  - Materials|Apparatus|Materials and Equipment|Equipment
+  - Error Analysis|Sources of Error|Uncertainty Analysis|Uncertainties
+  - Appendix|Appendices|Raw Data

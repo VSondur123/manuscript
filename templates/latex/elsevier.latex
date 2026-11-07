@@ -1,0 +1,56 @@
+$-- ManuScript pandoc template: Elsevier elsarticle (numeric, elsarticle-num.bst, natbib \citep from the class).
+$-- Front-matter keys (pandoc YAML):
+$--   title, abstract, keywords: [a, b]
+$--   author: list of {name, affiliation, email}  -- affiliations de-duplicated and numbered
+$--     (\author[n]{..}, \affiliation[n]{organization=..}); a plain string also works
+$--   journal (opt, shown in the preprint footer), elsevier-options (opt, default preprint,12pt; e.g. review,3p,twocolumn)
+$-- Textual \citet is rewritten to \citep (cite_command in the doctype): elsarticle-num.bst carries no author names.
+$-- Needs the venue-authors.lua filter (declared by doctypes/elsevier-paper.yaml).
+\documentclass[$if(elsevier-options)$$elsevier-options$$else$preprint,12pt$endif$]{elsarticle}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\usepackage{url}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\usepackage[hidelinks]{hyperref}
+$if(journal)$\journal{$journal$}$endif$
+\begin{document}
+\begin{frontmatter}
+
+\title{$title$}
+
+$for(author)$
+\author$if(author.affids)$[$author.affids$]$endif${$if(author.name)$$author.name$$else$$author$$endif$}$if(author.email)$\ead{$author.email$}$endif$
+$endfor$
+$for(affiliations)$
+\affiliation[$affiliations.id$]{organization={$affiliations.text$}}
+$endfor$
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$if(keywords)$
+\begin{keyword}
+$for(keywords)$$keywords$$sep$ \sep $endfor$
+\end{keyword}
+$endif$
+
+\end{frontmatter}
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{elsarticle-num}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

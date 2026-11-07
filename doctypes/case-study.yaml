@@ -1,0 +1,17 @@
+name: case-study
+description: Business, clinical or educational case study (context, analysis, recommendations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: apa7
+required_sections:
+  - Introduction|Background|Context|Case Background|Case Description
+  - Analysis|Case Analysis|Findings|Discussion|Analysis and Discussion
+  - Conclusion|Conclusions|Recommendations|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Conclusion and Recommendations
+  - References|Bibliography
+recommended_sections:
+  - Problem Statement|Issues|Key Issues|Problem Identification
+  - Alternatives|Options|Alternative Solutions
+  - Recommendations
+  - Implementation|Implementation Plan
+  - Lessons Learned|Limitations

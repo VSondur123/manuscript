@@ -18,9 +18,14 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ms_common as C  # noqa: E402
 import ms_state as S  # noqa: E402
 from validate_references import parse_bib  # noqa: E402
+import layout as L  # noqa: E402
 
+RAW_TEX_RE = re.compile(r"(?<![\\\w])\\(?:input|include|includeonly|openin|openout|write|read|immediate|usepackage|RequirePackage|documentclass|"
+                        r"def|edef|gdef|xdef|let|newcommand|renewcommand|providecommand|newwrite|newread|catcode|csname|special|directlua|"
+                        r"verbatiminput|lstinputlisting|includegraphics|subfile|import|begin|end)\b|\\write18")
+NARRATIVE_CITE_RE = re.compile(r"(?<![\w@.])@([A-Za-z0-9_][\w:.\-]*\w)(?!\w)")
 PLACEHOLDER_RE = re.compile(r"\[\[[^\]]*\]\]|\b(?:TODO|TBD|FIXME|XXX)\b|<!--\s*(?:EVIDENCE-NEEDED|TODO)")
-HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*(?:\{#([^}\s]+)[^}]*\})?\s*#*\s*$")
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*(?:\{(?:#([^}\s]+))?[^}]*\})?\s*#*\s*$")
 IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)\s]+)[^)]*\)(?:\{([^}]*)\})?")
 LINK_RE = re.compile(r"(?<!!)\[[^\]]*\]\(#([^)\s]+)\)")
 CITE_GROUP_RE = re.compile(r"\[([^\]\n]*@[^\]\n]*)\]")
@@ -82,6 +87,21 @@ def validate(path, bib_path=None, plan_path=None, doctype=None, config=None, bas
         doctype = dict(doctype or {}, require_abstract=config["require_abstract"])
     if doctype and doctype.get("require_abstract") and "abstract" not in keys:
         add("errors", 1, "no-abstract", "Document type requires an 'abstract:' field in front matter.")
+    if config and (config.get("layout") is not None or config.get("citation_style") is not None or config.get("frontmatter") is not None):
+        for msg in L.check_config(doctype or {}, config):  # CSL styles (apa7, vancouver, ...) are valid; typos are not
+            add("errors", 1, "invalid-config", msg)
+    if doctype and doctype.get("frontmatter"):  # opt-in formal thesis front matter: missing pieces are warnings, never errors
+        cfgfm = (config or {}).get("frontmatter")
+        cfgfm = cfgfm if isinstance(cfgfm, dict) else {}
+        for field, label in (("author", "author"), ("date", "date"), ("institution", "institution"), ("department", "department"),
+                             ("degree", "degree"), ("supervisor", "supervisor")):
+            if field not in keys and cfgfm.get(field) in (None, "", []):
+                add("warnings", 1, "frontmatter-missing", "Formal front matter: no %s (set '%s:' in the report front matter or "
+                    "'frontmatter: %s' in project-config.yaml); the cover page will omit it." % (label, field, field))
+        if "declaration" not in keys and not cfgfm.get("declaration"):
+            add("warnings", 1, "frontmatter-missing", "Formal front matter: no declaration/originality statement (set 'declaration:' or 'frontmatter: declaration: true').")
+        if "abstract" in keys and "keywords" not in keys:
+            add("warnings", 1, "frontmatter-missing", "Formal front matter: abstract has no 'keywords:' list.")
     clean = C.strip_code(body)
     lines = clean.splitlines()
 
@@ -260,6 +280,32 @@ def validate(path, bib_path=None, plan_path=None, doctype=None, config=None, bas
                 add("warnings", 1, "unused-bib-entry", "Bibliography entry %r is never cited." % key)
     if cited and not any(re.fullmatch(r"(?i)references|bibliography|works cited", t) for t in titles_norm):
         add("suggestions", 1, "no-reference-section", "Citations present but no 'References' heading. Pandoc appends the bibliography at the end unless a heading is provided.")
+
+    # raw LaTeX is NOT passed through to the .tex/.docx (it is rendered inert as text): tell the author
+    nomath = re.sub(r"\$\$.*?\$\$", lambda m: "\n" * m.group(0).count("\n"), clean, flags=re.S)
+    nomath = re.sub(r"(?<![\\\w$])\$[^\s$](?:[^$\n]*[^\s$\\])?\$(?![\w$])", " ", nomath)
+    for i, ln in enumerate(nomath.splitlines(), 1):
+        m = RAW_TEX_RE.search(ln)
+        if m:
+            add("warnings", i + fm_lines, "raw-latex-ignored",
+                "Raw LaTeX %s is not passed through to LaTeX or Word (it is shown as plain text). Use Markdown, $...$ / $$...$$ for math, "
+                "and the layout/frontmatter options in project-config.yaml instead." % m.group(0))
+            break
+    # MLA 9: a narrative cite without a locator can render with empty parentheses in some builds; ask for an explicit locator
+    try:
+        style = L.resolve_citation_style(doctype or {}, config or {})
+    except ValueError:
+        style = None
+    if style == "mla9" and bib is not None:
+        for i, ln in enumerate(lines, 1):
+            ln2 = re.sub(r"(?<![\w@])@[\w:.\-]+\s*\[[^\]]*\]", " ", ln)  # '@key [p. 5]' is fine
+            ln2 = CITE_GROUP_RE.sub(" ", ln2)                                # so are bracketed cites
+            for m in NARRATIVE_CITE_RE.finditer(ln2):
+                if m.group(1) in bib:
+                    add("warnings", i + fm_lines, "mla-narrative-no-locator",
+                        "MLA 9: narrative citation @%s has no locator; write '@%s [p. 5]' or '[@%s, p. 5]' (or ignore if the work has no pages)."
+                        % (m.group(1), m.group(1), m.group(1)))
+                    break
 
     # placeholders (on raw body, code excluded)
     for i, ln in enumerate(lines, 1):

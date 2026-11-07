@@ -1,0 +1,21 @@
+# pandoc defaults for the formal thesis (doctype thesis-formal); front/back matter comes from templates/latex/thesis.latex
+standalone: true
+number-sections: true
+toc: true
+toc-depth: 3
+top-level-division: chapter
+variables:
+  documentclass: report
+  classoption:
+    - 12pt
+    - a4paper
+    - oneside
+  geometry: margin=3cm
+  linestretch: 1.3
+  colorlinks: true
+  linkcolor: black
+  citecolor: black
+  urlcolor: blue
+  biblio-style: plainnat
+  natbiboptions: authoryear
+  biblio-title: References

@@ -3,7 +3,10 @@ project_id: my-document
 document_type: research-report      # must match a file in doctypes/
 title: Working Title
 language: en
-citation_style: numeric             # numeric | author-year
+# citation_style: numeric           # unset = the document type's default. Allowed values:
+#   BibTeX/natbib (default engine): numeric | author-year | ieee
+#   CSL via pandoc --citeproc:      apa7 | harvard | mla9 | chicago-author-date | chicago-notes | vancouver
+#   (list with: ms_state.py layouts; CSL files are vendored in templates/csl/)
 limits:
   max_words: null                   # e.g. 4000
   min_words: null
@@ -15,3 +18,21 @@ template: null                      # path to an institutional LaTeX template, i
 # required_sections: [Introduction, Method, Results, Conclusion]
 # recommended_sections: []
 # require_abstract: false
+# Page layout (optional; every value is whitelisted and checked by `ms_state.py check-config`).
+# Precedence: built-in defaults < document type < this block. Assignment guideline requirements go HERE.
+# Uncomment only what you need; unset options keep the document type's defaults.
+# Custom institutional templates (`template:`) and the IEEE document type cannot honour these options;
+# setting them there is rejected with an error rather than silently ignored.
+# layout:
+#   paper: a4                         # a4 | letter
+#   font_size: 11                     # 10 | 11 | 12
+#   spacing: onehalf                  # single | onehalf | double
+#   margins: 2.5cm                    # <number>cm | mm | in, e.g. 2.5cm, 25mm, 1in
+#   columns: 1                        # 1 | 2   (two columns: article-based document types only)
+#   font: cm                          # cm | times | palatino | libertinus | helvetica-sans
+#   header: none                      # none | running-title | title-author
+#   page_numbers: bottom-center       # bottom-center | bottom-right | top-right | none
+#   heading_numbering: on             # on | off
+#   caption_position: bottom          # bottom | top    (figure captions; table captions are always above)
+#   table_style: booktabs             # booktabs | plain (horizontal rules)
+#   colour: screen                    # screen (coloured links) | print (black)

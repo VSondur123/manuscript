@@ -1,0 +1,19 @@
+name: white-paper
+description: White paper presenting a problem, an argued solution and its benefits to a professional audience
+require_abstract: true             # use the abstract for the executive summary
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+layout:
+  font: libertinus
+  margins: 2.5cm
+  colour: screen
+required_sections:
+  - Introduction|Overview|Executive Summary
+  - Conclusion|Conclusions|Recommendations|Next Steps|Summary|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Conclusion and Recommendations
+recommended_sections:
+  - Problem|Problem Statement|The Problem|Challenges|Background
+  - Solution|Approach|Our Approach|Proposed Solution|Methodology
+  - Benefits|Business Value|Impact|Results
+  - Case Studies|Use Cases|Evidence
+  - References|Bibliography

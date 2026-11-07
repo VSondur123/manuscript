@@ -32,14 +32,38 @@ def check(path):
             errors.append("hyperref to undefined label: %s" % m.group(1))
     bibs = re.findall(r"\\bibliography\{([^}]+)\}", tex)
     entries = {}
+    # citeproc output (CSL citation styles): the reference list is built by pandoc inside the .tex;
+    # citations are \citeproc{ref-KEY}{text} and entries are \bibitem[...]{ref-KEY}. Keys resolve via the .bib next to the .tex.
+    if re.search(r"\\begin\{CSLReferences\}", tex):
+        if bibs:
+            errors.append("document mixes citeproc (CSLReferences) and \\bibliography; use one bibliography engine")
+        bp = os.path.join(base, "references.bib")
+        if os.path.isfile(bp):
+            entries.update(parse_bib(C.read_text(bp))[0])
+        items = set(re.findall(r"\\bibitem\[[^\]]*\]\{ref-([^}]+)\}", tex))
+        for k in sorted(set(re.findall(r"\\citeproc\{ref-([^}]+)\}", tex))):
+            if k not in entries:
+                errors.append("citation key not in bibliography: %s" % k)
+            elif k not in items:
+                errors.append("citation %s has no entry in the generated reference list" % k)
+        for k in sorted(items):
+            if entries and k not in entries:
+                errors.append("reference list entry not in bibliography file: %s" % k)
+        bibs = ["(citeproc)"]
+        cites = set()
+    else:
+        cites = None
     for b in [x.strip() for g in bibs for x in g.split(",")]:
+        if b == "(citeproc)":
+            continue
         bp = os.path.join(base, b if b.endswith(".bib") else b + ".bib")
         if not os.path.isfile(bp):
             errors.append("bibliography file not found: %s" % b)
         else:
             entries.update(parse_bib(C.read_text(bp))[0])
-    cites = {k.strip() for g in re.findall(r"\\(?:cite|citep|citet|citealp|citeauthor|citeyear|nocite)\*?(?:\[[^\]]*\])*\{([^}]*)\}", tex) for k in g.split(",")}
-    cites.discard("*")
+    if cites is None:
+        cites = {k.strip() for g in re.findall(r"\\(?:cite|citep|citet|citealp|citeauthor|citeyear|nocite)\*?(?:\[[^\]]*\])*\{([^}]*)\}", tex) for k in g.split(",")}
+        cites.discard("*")
     if cites and not bibs:
         errors.append("citations present but no \\bibliography{...} in the document")
     for k in sorted(cites):

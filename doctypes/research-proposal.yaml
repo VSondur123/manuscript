@@ -1,0 +1,18 @@
+name: research-proposal
+description: Research or grant proposal (background, aims, methods, timeline, expected outcomes)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: author-year
+required_sections:
+  - Introduction|Background|Background and Motivation|Introduction and Background|Background and Significance|Problem Statement|Motivation
+  - Research Questions|Objectives|Aims|Research Objectives|Aims and Objectives|Research Aims|Research Aims and Objectives|Specific Aims|Research Questions and Objectives|Research Objectives and Questions|Aims and Research Questions
+  - Methodology|Methods|Research Design|Proposed Methodology|Approach|Research Methods|Research Design and Methods|Methods and Materials|Materials and Methods|Research Methodology|Study Design|Experimental Method
+  - Timeline|Work Plan|Schedule|Project Timeline|Timeline and Milestones|Research Timeline|Project Plan|Schedule and Milestones|Time Plan
+  - References|Bibliography
+recommended_sections:
+  - Literature Review|Related Work
+  - Expected Outcomes|Expected Results|Significance|Expected Contributions
+  - Budget|Resources
+  - Risks|Risks and Mitigation|Limitations
+  - Ethical Considerations|Ethics

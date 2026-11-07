@@ -1,0 +1,7 @@
+standalone: true
+number-sections: true
+toc: false
+top-level-division: section
+syntax-highlighting: none
+variables:
+  biblio-style: elsarticle-num

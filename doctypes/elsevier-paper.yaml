@@ -1,0 +1,19 @@
+name: elsevier-paper
+description: Elsevier elsarticle paper (numeric elsarticle-num citations, frontmatter)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/elsevier.yaml
+pandoc_template: templates/latex/elsevier.latex
+lua_filters: [templates/latex/venue-authors.lua, templates/latex/ieee-tables.lua]
+cite_command: citep
+fig_abbrev: true
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

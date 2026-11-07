@@ -1,0 +1,45 @@
+$-- ManuScript pandoc template: APS/AIP REVTeX 4.2 (physics; apsrev4-2.bst, \cite).
+$-- Front-matter keys (pandoc YAML):
+$--   title, abstract
+$--   author: list of {name, affiliation, email}   (each author is followed by their \affiliation; plain string also works)
+$--   revtex-options  (opt, class options; default reprint,aps,pra,superscriptaddress; use preprint for one column)
+\documentclass[$if(revtex-options)$$revtex-options$$else$reprint,aps,pra,superscriptaddress$endif$]{revtex4-2}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{textcomp}
+\usepackage{url}
+\newcommand{\pandocbounded}[1]{#1}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+\setkeys{Gin}{width=\linewidth,height=0.4\textheight,keepaspectratio}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\usepackage[hidelinks]{hyperref}
+\begin{document}
+
+\title{$title$}
+
+$for(author)$
+\author{$if(author.name)$$author.name$$else$$author$$endif$}
+$if(author.email)$\email{$author.email$}$endif$
+$if(author.affiliation)$\affiliation{$author.affiliation$}$endif$
+$endfor$
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+
+\maketitle
+
+$body$
+
+$if(natbib)$
+\bibliographystyle{apsrev4-2}
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+
+\end{document}

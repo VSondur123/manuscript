@@ -1,0 +1,15 @@
+name: literature-review
+description: Stand-alone literature review or survey that synthesises prior work thematically
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: author-year
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Summary|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Summary and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Methodology|Review Methodology|Search Strategy|Methods
+  - Discussion|Synthesis|Thematic Analysis|Thematic Synthesis
+  - Research Gaps|Gaps and Future Directions|Future Work|Future Research
+  - Limitations

@@ -1,0 +1,21 @@
+name: dissertation-proposal
+description: Thesis or dissertation proposal with literature review, research questions, methodology and plan
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: author-year
+layout:
+  font_size: 12
+  spacing: onehalf
+required_sections:
+  - Introduction|Introduction and Background|Background and Significance|Problem Statement|Introduction and Rationale
+  - Literature Review|Background|Related Work|Review of the Literature|Literature Review and Background|Theoretical Framework|Conceptual Framework|Background and Literature Review
+  - Research Questions|Objectives|Aims|Research Objectives|Aims and Objectives|Research Aims|Research Aims and Objectives|Specific Aims|Research Questions and Objectives|Research Objectives and Questions|Aims and Research Questions
+  - Methodology|Methods|Research Design|Proposed Methodology|Research Methods|Research Design and Methods|Methods and Materials|Materials and Methods|Research Methodology|Study Design|Experimental Method
+  - Timeline|Work Plan|Schedule|Project Timeline|Timeline and Milestones|Research Timeline|Project Plan|Schedule and Milestones|Time Plan
+  - References|Bibliography
+recommended_sections:
+  - Significance|Contribution|Expected Contributions|Expected Outcomes
+  - Preliminary Work|Preliminary Results|Pilot Study
+  - Ethical Considerations|Ethics
+  - Limitations|Risks|Risks and Limitations

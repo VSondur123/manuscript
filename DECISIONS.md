@@ -66,3 +66,43 @@ Status values: Proposed, Approved, Rejected, Superseded.
 - **Date:** 2026-11-06
 - **Decision:** Markdown approval records SHA-256 hashes of every referenced local figure, its spec and its input data files. Any change makes the approval stale (same as editing the text).
 - **Status:** Approved
+
+## D-012 — Humanize as an argument, not a separate skill
+- **Date:** 2026-11-07
+- **Context:** Users want `/manuscript humanize`. Multi-skill repos (e.g. BMAD) give each command its own `SKILL.md`.
+- **Alternatives:** (A) argument + reference doc + script inside the one skill; (B) separate `manuscript-humanize` skill folder.
+- **Decision:** A.
+- **Reasoning:** One state machine and one set of approval/backup rules; humanize edits the same report file and must respect them. A second skill would duplicate those rules or bypass them. Reference files already give progressive loading.
+- **Consequences:** `/manuscript humanize` works; `/manuscript-humanize` would need a thin wrapper skill that delegates to this one.
+- **Status:** Approved
+
+## D-013 — Citation styles via CSL, not per-style BibTeX templates
+- **Date:** 2026-11-07
+- **Alternatives:** (A) pandoc `--citeproc` with vendored official CSL files; (B) a BibTeX `.bst` per style; (C) biblatex/biber.
+- **Decision:** A for apa7, harvard, mla9, chicago, vancouver; the default numeric/author-year/ieee path stays on BibTeX so existing output is unchanged.
+- **Reasoning:** Tectonic does not run biber; CSL files are official and cover the styles users are asked for. `vancouver` maps to NLM "Citing Medicine" because the CSL repo has no plain vancouver file.
+- **Consequences:** CSL files are CC BY-SA 3.0 (recorded in `templates/csl/NOTICE.md`); CSL hash is stored in state; CSL is rejected for ieee-report and custom templates without `$csl-refs$`; MLA narrative cites need a locator.
+- **Status:** Approved
+
+## D-014 — Whitelisted layout options with one merge point
+- **Date:** 2026-11-07
+- **Decision:** Layout options are an enumerated whitelist merged in `scripts/layout.py` (built-in < doctype < config). Values never reach LaTeX as free text. Generated defaults/header files are hashed into state. Options a font or template cannot compile were cut (fontspec-by-family-name fonts).
+- **Status:** Approved
+
+## D-015 — thesis-formal is a separate doctype
+- **Date:** 2026-11-07
+- **Alternatives:** (A) new doctype; (B) `frontmatter: true` switch on `thesis`.
+- **Decision:** A. The doctype is recorded in state and reviewed at plan time; the default `thesis` output stays byte-identical. The logo is hash-locked like a figure (extends D-011).
+- **Status:** Approved
+
+## D-016 — DOCX is an optional export, not a stage
+- **Date:** 2026-11-07
+- **Decision:** `md_to_docx.py` converts the approved snapshot only, adds no state stage, writes `.ms/docx/<id>.docx` and is copied to the visible folder only by `publish --docx`/`--docx-only`. The visible-files rule allows `<id>.docx` on request. Venue and thesis-formal typesetting is not reproduced in Word and every export says so. Output is validated structurally only.
+- **Status:** Approved
+
+## D-017 — Raw LaTeX in Markdown is not passed through
+- **Date:** 2026-11-07
+- **Context:** Independent check showed `\input{/etc/passwd}` in the Markdown reached LaTeX (pre-existing).
+- **Decision:** Read Markdown as `markdown-raw_tex`; warn in validation. Trade-off: users can no longer embed raw LaTeX in the report; use config options instead.
+- **Consequences:** a `raw-latex-ignored` warning is shown; math must use `$`/`$$`. Verified: the `\input{/etc/passwd}` draft compiles without reading the file.
+- **Status:** Approved

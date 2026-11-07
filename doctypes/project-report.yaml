@@ -1,0 +1,18 @@
+name: project-report
+description: Capstone or course project report covering problem, design/implementation, results and reflection
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+required_sections:
+  - Introduction|Project Overview|Overview|Introduction and Background|Background
+  - Design|Implementation|Methodology|System Design|Approach|Methods|Methods and Materials|Materials and Methods|Design and Implementation|Implementation and Design
+  - Results|Evaluation|Testing|Outcomes|Results and Discussion|Results and Analysis|Findings|Evaluation and Results
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks
+  - References|Bibliography
+recommended_sections:
+  - Problem Statement|Objectives|Goals
+  - Requirements
+  - Background|Related Work|Literature Review
+  - Limitations
+  - Future Work

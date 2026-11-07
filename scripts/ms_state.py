@@ -137,6 +137,9 @@ def figure_dependencies(root, pid):
         if not re.match(r"^[a-z]+:", m.group(1)) and os.path.isfile(os.path.join(d, rel)):
             refs.add(rel)
             deps[rel] = sha256_file(os.path.join(d, rel))
+            png = os.path.splitext(rel)[0] + ".png"
+            if rel.lower().endswith(".pdf") and os.path.isfile(os.path.join(d, png)):
+                deps[png] = sha256_file(os.path.join(d, png))  # the Word export swaps a PDF figure for this PNG: lock it too
     mpath = os.path.join(d, WORK, "figures", "manifest.json")
     if os.path.isfile(mpath):
         for ent in read_json(mpath).values():
@@ -145,6 +148,69 @@ def figure_dependencies(root, pid):
                     p_ = os.path.join(d, rel)
                     deps[os.path.normpath(rel)] = sha256_file(p_) if os.path.isfile(p_) else "MISSING"
     return deps
+
+
+LOGO_DIR = WORK + "/assets"
+
+
+def config_logo_source(root, pid):
+    """Path named by `frontmatter.logo` in the project config, or None."""
+    cfg_path = artifact_path(root, pid, "config")
+    cfg = load_yaml(cfg_path) if os.path.isfile(cfg_path) else {}
+    fm = (cfg or {}).get("frontmatter")
+    return fm.get("logo") if isinstance(fm, dict) else None
+
+
+def lock_logo(root, pid, st, source=None):
+    """Copy the configured logo into .ms/assets/ and record its sha256 (same drift rules as figures)."""
+    rel = source or config_logo_source(root, pid)
+    if not rel:
+        raise StateError("no logo given and project-config.yaml has no frontmatter.logo")
+    ext = os.path.splitext(str(rel))[1].lower().lstrip(".")
+    if ext not in ("png", "jpg", "jpeg", "pdf"):
+        raise StateError("logo must be a png, jpg or pdf file (got %r)" % rel)
+    d = pdir(root, pid)
+    src = os.path.join(d, rel)  # relative paths are relative to the project directory; absolute ones must still land inside it
+    if not os.path.isfile(src):
+        raise StateError("logo file not found: %s" % rel)
+    real_d, real_src = os.path.realpath(d), os.path.realpath(src)
+    if os.path.commonpath([real_d, real_src]) != real_d:  # also catches symlinks that escape the project
+        raise StateError("logo %r resolves outside the project directory (%s); copy the image into the project first" % (rel, real_src))
+    src = real_src
+    os.makedirs(os.path.join(d, LOGO_DIR), exist_ok=True)
+    dst_rel = "%s/logo.%s" % (LOGO_DIR, ext)
+    for old in os.listdir(os.path.join(d, LOGO_DIR)):  # one logo only; a changed extension must not leave a stale copy
+        if old.startswith("logo."):
+            os.unlink(os.path.join(d, LOGO_DIR, old))
+    shutil.copy2(src, os.path.join(d, dst_rel))
+    st["logo"] = {"path": dst_rel, "source": str(rel), "sha256": sha256_file(os.path.join(d, dst_rel)), "locked_at": now()}
+    return st["logo"]
+
+
+def locked_logo(root, pid, st):
+    """Absolute path of the locked logo after verifying its hash; None if none is locked. Raises StateError on drift."""
+    rec = st.get("logo")
+    if not rec:
+        return None
+    p_ = os.path.join(pdir(root, pid), rec["path"])
+    if not os.path.isfile(p_):
+        raise StateError("locked logo missing: %s" % rec["path"])
+    if sha256_file(p_) != rec["sha256"]:
+        raise StateError("locked logo %s changed since it was locked; re-run lock-logo to accept the new image" % rec["path"])
+    return p_
+
+
+def logo_changes(root, pid, st):
+    rec = st.get("logo")
+    if not rec:
+        return []
+    p_ = os.path.join(pdir(root, pid), rec["path"])
+    if not os.path.isfile(p_):
+        return [{"artifact": rec["path"], "kind": "logo_missing", "detail": "locked logo file is missing"}]
+    if sha256_file(p_) != rec["sha256"]:
+        return [{"artifact": rec["path"], "kind": "logo_changed",
+                 "detail": "locked logo changed after locking; re-run lock-logo to accept it (re-approval is then required)"}]
+    return []
 
 
 def figure_changes(root, pid, st):
@@ -208,6 +274,9 @@ def verify(root, pid, st=None):
     if IDX[st["stage"]] >= IDX["PLAN_APPROVED"] and pa != "current":
         changes.append({"artifact": "plan", "kind": "stage_inconsistent",
                         "detail": "stage %s requires a current plan approval" % st["stage"]})
+    changes.extend(logo_changes(root, pid, st))
+    changes.extend(latex_input_changes(root, pid, st))
+    changes.extend(docx_changes(root, pid, st))
     ap = st.get("markdown_approval")
     if ap and not os.path.isfile(os.path.join(pdir(root, pid), ap["snapshot"])):
         changes.append({"artifact": "approved", "kind": "missing", "detail": "approved snapshot file missing"})
@@ -215,6 +284,55 @@ def verify(root, pid, st=None):
         changes.append({"artifact": "approved", "kind": "modified_externally",
                         "detail": "approved snapshot was altered; it must never be edited"})
     return changes
+
+
+def latex_input_changes(root, pid, st):
+    """Files the generated .tex depends on (CSL style, generated pandoc defaults/header) vs what was recorded
+    at generation (st['latex']['inputs']). Additive: projects generated before this existed have no record."""
+    inp = (st.get("latex") or {}).get("inputs") or {}
+    out = []
+    skill = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    csl = inp.get("csl")
+    if csl:
+        p_ = os.path.join(skill, csl["path"])
+        cur = sha256_file(p_) if os.path.isfile(p_) else None
+        if cur != csl["sha256"]:
+            out.append({"artifact": "latex", "kind": "latex_input_changed",
+                        "detail": "CSL style %s changed or is missing since LaTeX generation; regenerate LaTeX" % csl["path"]})
+    for rel, sha in (inp.get("files") or {}).items():
+        p_ = os.path.join(pdir(root, pid), WORK, "latex", rel)
+        cur = sha256_file(p_) if os.path.isfile(p_) else None
+        if cur != sha:
+            out.append({"artifact": "latex", "kind": "latex_input_changed",
+                        "detail": "%s changed or is missing since LaTeX generation; regenerate LaTeX" % rel})
+    return out
+
+
+def docx_changes(root, pid, st):
+    """Optional DOCX export (st['docx']): stale when the Markdown approval it was exported from has changed, or when the file
+    or its CSL style changed. Additive: projects without a DOCX export have no record and report nothing."""
+    rec = st.get("docx")
+    if not rec:
+        return []
+    out = []
+    d = pdir(root, pid)
+    p_ = os.path.join(d, rec["path"])
+    ap = st.get("markdown_approval")
+    if not os.path.isfile(p_):
+        out.append({"artifact": "docx", "kind": "docx_missing", "detail": "recorded DOCX export is missing; re-run md_to_docx.py"})
+    elif sha256_file(p_) != rec.get("sha256"):
+        out.append({"artifact": "docx", "kind": "docx_modified", "detail": "DOCX export changed after it was generated; re-run md_to_docx.py"})
+    if not ap or ap.get("sha256") != rec.get("from_approved_sha256"):
+        out.append({"artifact": "docx", "kind": "docx_stale",
+                    "detail": "DOCX was exported from an earlier Markdown approval; re-run md_to_docx.py after re-approval"})
+    csl = (rec.get("inputs") or {}).get("csl")
+    if csl:
+        skill = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        c_ = os.path.join(skill, csl["path"])
+        if not os.path.isfile(c_) or sha256_file(c_) != csl["sha256"]:
+            out.append({"artifact": "docx", "kind": "docx_stale",
+                        "detail": "CSL style %s changed since DOCX export; re-run md_to_docx.py" % csl["path"]})
+    return out
 
 
 def sync(root, pid, st):
@@ -314,21 +432,36 @@ def approve(root, pid, st, kind, phrase):
     shutil.copy2(draft, snap)
     os.chmod(snap, 0o444)
     st["markdown_approval"] = {"approved_at": now(), "sha256": h, "version": ver, "snapshot": snap_rel,
-                               "figures": figure_dependencies(root, pid)}
+                               "figures": dict(figure_dependencies(root, pid), **({st["logo"]["path"]: st["logo"]["sha256"]} if st.get("logo") else {}))}
     set_stage(root, pid, st, "MARKDOWN_APPROVED", "markdown approved")
     return st
 
 
-def publish(root, pid, st):
-    """Copy the final <id>.tex and <id>.pdf from .ms/latex/ to the visible project folder."""
+def publish(root, pid, st, docx=False, docx_only=False):
+    """Copy the final <id>.tex and <id>.pdf from .ms/latex/ to the visible project folder.
+    docx=True (only on request) additionally copies the current <id>.docx export from .ms/docx/;
+    docx_only=True copies just the .docx (for Word-only delivery; no LaTeX/PDF needed)."""
     d = pdir(root, pid)
     out = []
-    for ext in ("tex", "pdf"):
+    docx = docx or docx_only
+    if docx:
+        rec = st.get("docx")
+        if not rec:
+            raise StateError("Cannot publish --docx: no DOCX export yet (run md_to_docx.py)")
+        if markdown_approval_status(root, pid, st) != "current":
+            raise StateError("Cannot publish --docx: Markdown approval is not current (draft or figures changed)")
+        bad = docx_changes(root, pid, st)
+        if bad:
+            raise StateError("Cannot publish --docx: %s" % bad[0]["detail"])
+    for ext in (() if docx_only else ("tex", "pdf")):
         src = os.path.join(d, WORK, "latex", "%s.%s" % (pid, ext))
         if not os.path.isfile(src):
             raise StateError("Cannot publish: %s missing (generate and compile first)" % os.path.relpath(src, d))
         shutil.copy2(src, os.path.join(d, "%s.%s" % (pid, ext)))
         out.append("%s.%s" % (pid, ext))
+    if docx:
+        shutil.copy2(os.path.join(d, st["docx"]["path"]), os.path.join(d, "%s.docx" % pid))
+        out.append("%s.docx" % pid)
     return out
 
 
@@ -352,6 +485,27 @@ def summary(root, pid, st, changes):
     }
 
 
+def check_config(root, pid, st):
+    """Validate the project's layout / citation_style against the whitelists. Exit 0 ok, 1 problems."""
+    import layout as L
+    skill = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    cfg_path = artifact_path(root, pid, "config")
+    cfg = load_yaml(cfg_path) if os.path.isfile(cfg_path) else {}
+    dt_path = os.path.join(skill, "doctypes", "%s.yaml" % st["doctype"])
+    dt = load_yaml(dt_path) if os.path.isfile(dt_path) else {}
+    errs = L.check_config(dt, cfg or {}, skill_dir=skill, root=root)
+    if not errs and ((cfg or {}).get("frontmatter") or {}).get("logo") and not st.get("logo"):
+        errs.append("frontmatter.logo is set but not locked; run: ms_state.py lock-logo")
+    if errs:
+        for e in errs:
+            print("ERROR %s" % e)
+        return 1
+    print("config OK: citation_style=%s layout=%s frontmatter=%s" % (L.resolve_citation_style(dt, cfg) or "(doctype default)",
+                                                      L.resolve_layout(dt, cfg) or "(doctype default)",
+                                                      sorted(L.resolve_frontmatter(dt, cfg)) or "(none)"))
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--root", default=os.getcwd(), help="repository root (default: cwd)")
@@ -359,17 +513,24 @@ def main(argv=None):
     p = sub.add_parser("init"); p.add_argument("project"); p.add_argument("--doctype", required=True); p.add_argument("--title")
     sub.add_parser("list")
     sub.add_parser("doctypes", help="list available document types")
+    sub.add_parser("layouts", help="list allowed layout options and citation styles")
+    p = sub.add_parser("check-config", help="validate layout/citation_style/template settings of a project (all errors at once)")
+    p.add_argument("project", nargs="?")
     for name in ("status", "verify", "sync"):
         p = sub.add_parser(name); p.add_argument("project", nargs="?")
         if name == "status":
             p.add_argument("--brief", action="store_true")
         if name == "verify":
             p.add_argument("--fix", action="store_true", help="demote stage if approval is stale")
+    p = sub.add_parser("lock-logo", help="copy the logo named by frontmatter.logo (or FILE) into .ms/assets and record its sha256")
+    p.add_argument("project", nargs="?"); p.add_argument("--file")
     p = sub.add_parser("stage"); p.add_argument("project", nargs="?"); p.add_argument("stage"); p.add_argument("--note", default="")
     p = sub.add_parser("backup"); p.add_argument("project", nargs="?"); p.add_argument("file")
     p = sub.add_parser("approve-plan"); p.add_argument("project", nargs="?"); p.add_argument("--phrase", required=True)
     p = sub.add_parser("approve-markdown"); p.add_argument("project", nargs="?"); p.add_argument("--phrase", required=True)
     p = sub.add_parser("publish", help="copy final .tex/.pdf from .ms/latex to the visible project folder"); p.add_argument("project", nargs="?")
+    p.add_argument("--docx", action="store_true", help="also copy the optional Word export <id>.docx (from md_to_docx.py)")
+    p.add_argument("--docx-only", action="store_true", help="copy only <id>.docx (Word-only delivery; works from MARKDOWN_APPROVED on)")
     p = sub.add_parser("path"); p.add_argument("project", nargs="?"); p.add_argument("what", choices=list(ARTIFACTS) + ["dir"])
     a = ap.parse_args(argv)
     root = os.path.abspath(a.root)
@@ -386,6 +547,10 @@ def main(argv=None):
                     y = load_yaml(os.path.join(dd, fn))
                     print("%s\t%s\trequired: %s" % (y.get("name"), y.get("description"), ", ".join(y.get("required_sections") or [])))
             return 0
+        if a.cmd == "layouts":
+            import layout as L
+            print(L.describe())
+            return 0
         if a.cmd == "list":
             for p_ in list_projects(root):
                 s = load(root, p_)
@@ -393,6 +558,13 @@ def main(argv=None):
             return 0
         pid = resolve(root, a.project)
         st = load(root, pid)
+        if a.cmd == "check-config":
+            return check_config(root, pid, st)
+        if a.cmd == "lock-logo":
+            rec = lock_logo(root, pid, st, a.file)
+            save(root, pid, st)
+            print("locked logo %s (sha256 %s)" % (rec["path"], rec["sha256"][:16]))
+            return 0
         if a.cmd == "path":
             print(pdir(root, pid) if a.what == "dir" else artifact_path(root, pid, a.what))
             return 0
@@ -425,9 +597,12 @@ def main(argv=None):
             print("%s -> %s" % (pid, st["stage"]))
             return 0
         if a.cmd == "publish":
-            if st["stage"] not in ("PDF_QA", "COMPLETED"):
+            if a.docx_only:
+                if IDX[st["stage"]] < IDX["MARKDOWN_APPROVED"]:
+                    raise StateError("publish --docx-only requires Markdown approval (stage %s)" % st["stage"])
+            elif st["stage"] not in ("PDF_QA", "COMPLETED"):
                 raise StateError("publish requires stage PDF_QA or COMPLETED (now %s)" % st["stage"])
-            print("published: " + ", ".join(publish(root, pid, st)))
+            print("published: " + ", ".join(publish(root, pid, st, docx=a.docx, docx_only=a.docx_only)))
             return 0
         if a.cmd == "backup":
             print(backup(root, pid, a.file))

@@ -1,0 +1,20 @@
+name: conference-paper
+description: Generic two-column conference paper (not tied to a venue template; use a venue doctype when one fits)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+layout:
+  columns: 2
+  font_size: 10
+  font: times
+  margins: 2cm
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methods|Methodology|Approach
+  - Experiments|Evaluation|Results|Experimental Results
+  - Discussion|Limitations

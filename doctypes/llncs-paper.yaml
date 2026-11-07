@@ -1,0 +1,19 @@
+name: llncs-paper
+description: Springer LNCS paper (llncs class, numeric splncs04 citations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/llncs.yaml
+pandoc_template: templates/latex/llncs.latex
+lua_filters: [templates/latex/venue-authors.lua, templates/latex/ieee-tables.lua]
+cite_command: cite
+fig_abbrev: true
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

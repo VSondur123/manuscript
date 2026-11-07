@@ -1,0 +1,18 @@
+name: system-design-document
+description: Software or system design document (goals, requirements, architecture, interfaces, trade-offs)
+require_abstract: true             # use the abstract for the executive summary
+top_level_division: section
+latex_defaults: templates/latex/article.yaml
+citation_style: numeric
+required_sections:
+  - Introduction|Overview|Purpose and Scope|Scope
+  - Requirements|Goals|Goals and Non-Goals|Functional Requirements
+  - Architecture|System Architecture|High-Level Design|Design|Detailed Design
+recommended_sections:
+  - Data Model|Data Design|Database Design
+  - Interfaces|API Design|Interface Design|APIs
+  - Security|Security Considerations
+  - Deployment|Deployment Plan|Operations
+  - Testing|Testing Strategy|Test Plan
+  - Risks|Open Issues|Open Questions|Alternatives Considered
+  - References|Bibliography

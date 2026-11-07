@@ -1,0 +1,18 @@
+name: acm-paper
+description: ACM acmart paper (sigconf by default, two columns, numeric ACM-Reference-Format citations)
+require_abstract: true
+top_level_division: section
+latex_defaults: templates/latex/acm.yaml
+pandoc_template: templates/latex/acm.latex
+lua_filters: [templates/latex/ieee-tables.lua]
+fig_abbrev: true
+citation_style: numeric
+required_sections:
+  - Introduction
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks|Discussion and Conclusion
+  - References|Bibliography
+recommended_sections:
+  - Related Work|Background
+  - Method|Methodology
+  - Results|Findings
+  - Limitations|Threats to Validity

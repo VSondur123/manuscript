@@ -1,0 +1,270 @@
+$document-metadata.latex()$
+$passoptions.latex()$
+\documentclass[
+$for(babel-otherlangs)$
+  $babel-otherlangs$,
+$endfor$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+\usepackage{xcolor}
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$endif$
+\usepackage{amsmath,amssymb}
+$if(cancel)$
+\usepackage{cancel}
+$endif$
+$--
+$-- section numbering
+$--
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+$endif$
+$fonts.latex()$
+$font-settings.latex()$
+$common.latex()$
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+$if(pdf-trailer-id)$
+
+\ifXeTeX
+\special{pdf:trailerid [ $pdf-trailer-id$ ]}
+\fi
+\ifPDFTeX
+\pdftrailerid{}
+\pdftrailer{/ID [ $pdf-trailer-id$ ]}
+\fi
+\ifLuaTeX
+\pdfvariable trailerid {[ $pdf-trailer-id$ ]}
+\fi
+$endif$
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+$-- ManuScript formal thesis template (doctype thesis-formal). Opt-in front/back matter.
+$-- Layout, header-includes, fonts and the CSL bibliography support (csl-refs) come from the shared pandoc partials above
+$-- (common.latex), so layout options and citation styles behave as in the stock template.
+$-- All text below is pandoc metadata: pandoc has already LaTeX-escaped it. Nothing here comes from raw config strings.
+
+$-- ---------------------------------------------------------------- cover / title page
+\begin{titlepage}
+\enlargethispage{2cm}% a full cover (logo, faculty, department, degree, supervisors, subtitle) must still fit one page
+\begin{center}
+$if(logo)$
+\includegraphics[width=0.5\linewidth,height=2.5cm,keepaspectratio]{$logo$}\par\vspace{0pt plus 0.6fill}
+$endif$
+$if(institution)$
+{\Large\bfseries $institution$\par}
+\vspace{0.3cm}
+$endif$
+$if(faculty)$
+{\large $faculty$\par}
+$endif$
+$if(department)$
+{\large $department$\par}
+$endif$
+\vspace{0pt plus 1fill}
+{\Huge\bfseries $title$\par}
+$if(subtitle)$
+\vspace{0.4cm}
+{\Large $subtitle$\par}
+$endif$
+\vspace{0pt plus 1fill}
+$if(degree)$
+{\large Submitted in partial fulfilment of the requirements\\ for the degree of\par}
+\vspace{0.3cm}
+{\large\bfseries $degree$\par}
+\vspace{0pt plus 0.6fill}
+$endif$
+{\large by\par}
+\vspace{0.3cm}
+{\Large\bfseries $for(author)$$author$$sep$, $endfor$\par}
+$if(supervisor)$
+\vspace{0pt plus 0.6fill}
+{\large Supervisor(s): $for(supervisor)$$supervisor$$sep$; $endfor$\par}
+$endif$
+\vspace{0pt plus 1fill}
+{\large $if(date)$$date$$else$\today$endif$\par}
+\end{center}
+\end{titlepage}
+$if(roman-front)$
+\pagenumbering{roman}
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$-- ---------------------------------------------------------------- copyright / declaration / dedication
+$if(copyright)$
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+$copyright$
+\end{center}
+\clearpage
+$elseif(include-copyright)$
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+Copyright \copyright{} \the\year{} $for(author)$$author$$sep$, $endfor$. All rights reserved.
+\end{center}
+\clearpage
+$endif$
+$if(declaration)$
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+$declaration$
+
+\vspace{2cm}
+$for(author)$$author$$sep$, $endfor$$if(date)$\hfill $date$$endif$
+\clearpage
+$elseif(include-declaration)$
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+I declare that this thesis, \emph{$title$}, is my own work. It has not been submitted, in whole or in part, for any other degree or qualification, and all sources I have used are acknowledged.
+
+\vspace{2cm}
+$for(author)$$author$$sep$, $endfor$$if(date)$\hfill $date$$endif$
+\clearpage
+$endif$
+$if(dedication)$
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+\emph{$dedication$}
+\end{center}
+\vspace*{\fill}
+\clearpage
+$endif$
+$-- ---------------------------------------------------------------- abstract, keywords, acknowledgements
+$if(abstract)$
+\chapter*{$if(abstract-title)$$abstract-title$$else$Abstract$endif$}
+\addcontentsline{toc}{chapter}{$if(abstract-title)$$abstract-title$$else$Abstract$endif$}
+$abstract$
+$if(keywords)$
+
+\medskip
+\noindent\textbf{Keywords:} $for(keywords)$$keywords$$sep$, $endfor$
+$endif$
+\clearpage
+$endif$
+$if(acknowledgements)$
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+$acknowledgements$
+\clearpage
+$endif$
+$-- ---------------------------------------------------------------- contents and lists
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+{
+$if(colorlinks)$
+$if(toccolor)$
+\hypersetup{linkcolor=$toccolor$}
+$endif$
+$endif$
+\setcounter{tocdepth}{$if(toc-depth)$$toc-depth$$else$3$endif$}
+\tableofcontents
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(abbreviations)$
+\chapter*{List of Abbreviations}
+\addcontentsline{toc}{chapter}{List of Abbreviations}
+\begin{list}{}{\setlength{\labelwidth}{3.5cm}\setlength{\leftmargin}{3.9cm}\setlength{\labelsep}{0.4cm}\setlength{\itemsep}{2pt}\renewcommand{\makelabel}[1]{\textbf{#1}\hfil}}
+$for(abbreviations)$
+\item[{$abbreviations.term$}] $abbreviations.meaning$
+$endfor$
+\end{list}
+\clearpage
+$endif$
+$if(symbols)$
+\chapter*{List of Symbols}
+\addcontentsline{toc}{chapter}{List of Symbols}
+\begin{list}{}{\setlength{\labelwidth}{3.5cm}\setlength{\leftmargin}{3.9cm}\setlength{\labelsep}{0.4cm}\setlength{\itemsep}{2pt}\renewcommand{\makelabel}[1]{\hfil#1}}
+$for(symbols)$
+\item[{$symbols.term$}] $symbols.meaning$
+$endfor$
+\end{list}
+\clearpage
+$endif$
+$if(roman-front)$
+\clearpage
+\pagenumbering{arabic}
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$body$
+
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+
+$endif$
+$endif$
+$if(appendix-body)$
+\appendix
+$appendix-body$
+
+$endif$
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}

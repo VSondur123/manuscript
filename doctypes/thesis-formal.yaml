@@ -1,0 +1,21 @@
+name: thesis-formal
+description: Thesis or dissertation with formal front/back matter (cover page, declaration, abstract, contents and lists, abbreviations, lettered appendices); opt-in variant of thesis
+require_abstract: true
+top_level_division: chapter
+latex_defaults: templates/latex/thesis.yaml
+pandoc_template: templates/latex/thesis.latex
+lua_filters: [templates/latex/thesis-appendix.lua]
+layout_options: all
+frontmatter: true
+citation_style: author-year
+required_sections:
+  - Introduction
+  - Literature Review|Background|Related Work
+  - Methodology|Methods|Materials and Methods|Research Methods|Research Methodology|Research Design|Methods and Materials
+  - Results|Findings|Results and Discussion|Results and Analysis|Analysis
+  - Discussion|Results and Discussion|Discussion and Conclusion|Analysis and Discussion
+  - Conclusion|Conclusions|Conclusion and Future Work|Conclusions and Future Work|Concluding Remarks
+  - References|Bibliography
+recommended_sections:
+  - Limitations
+  - Future Work
